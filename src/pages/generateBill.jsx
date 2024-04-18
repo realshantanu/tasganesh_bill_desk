@@ -35,7 +35,9 @@ export default function GenerateBill() {
           />
         </div>
         <div className="w-1/3 pr-4 pl-2 pt-10">
-          <DueBillCard />
+          <DueBillCard 
+            vehicleNumber={vehicleNumber}
+          />
         </div>
       </div>
     </>

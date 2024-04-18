@@ -1,30 +1,29 @@
-export default function DueBillCard() {
-    const dummy = [
-      {
-        billno: "1203/23-24",
-        name: "John Doe",
-        amount: 1000,
-        dueDate: "2021-12-31",
-        status: "Unpaid",
-      },
-      {
-        billno: "1204/23-24",
-        name: "John Doe",
-        amount: 1000,
-        dueDate: "2021-12-31",
-        status: "Unpaid",
-      },
-      {
-        billno: "1205/23-24",
-        name: "John Doe",
-        amount: 1000,
-        dueDate: "2021-12-31",
-        status: "Unpaid",
-      },
-    ];
+import { useState, useEffect } from "react";
+
+export default function DueBillCard(props) {
+    const [dueData, setDueData] = useState([]);
+    const {
+      vehicleNumber
+    } = props;
+
+    useEffect (() => {
+        // Fetch due data
+        if(vehicleNumber){
+          fetch(`http://localhost:5000//api/vehicles/${vehicleNumber}/bills`)
+          .then((response) => response.json())
+          .then((data) => {
+              setDueData(data);
+              console.log(data);
+          })
+          .catch((error) => {
+              console.error("Error:", error);
+          });
+        }
+    }, [vehicleNumber]);
+
   
     // Calculate total due amount
-    const totalDue = dummy.reduce((total, item) => total + item.amount, 0);
+     const totalDue = dueData.reduce((total, item) => total + item.amount, 0);
   
     return (
       <>
@@ -36,7 +35,7 @@ export default function DueBillCard() {
           </div>
           <div className="flow-root">
             <ul role="list" className="divide-y divide-gray-200">
-              {dummy.map((item, index) => (
+              {dueData.map((item, index) => (
                 <li key={index} className="py-3 sm:py-4">
                   <div className="flex items-center">
                     <div className="flex-1 min-w-0 ms-4">
@@ -54,7 +53,7 @@ export default function DueBillCard() {
                       </p>
                     </div>
                     <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                      ${item.amount}
+                    ₹{item.amount}
                     </div>
                   </div>
                 </li>
@@ -62,7 +61,7 @@ export default function DueBillCard() {
               <li className="py-3 sm:py-4">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Total Due:</span>
-                  <span className="font-semibold text-gray-900">${totalDue}</span>
+                  <span className="font-semibold text-gray-900">₹{totalDue}</span>
                 </div>
               </li>
             </ul>
