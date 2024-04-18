@@ -2,17 +2,30 @@ import { useState, useEffect } from "react";
 import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
 import { PDFViewer } from "@react-pdf/renderer";
 
-export default function BillForm() {
-  const serviceName = [
-    { id: 1, name: "Service 1" },
-    { id: 2, name: "Service 2" },
-    { id: 3, name: "Service 3" },
+import axios from "axios";
+
+export default function BillForm(props) {
+
+  const isPaid = [
+    { id: 1, name: "Paid" },
+    { id: 2, name: "Unpaid" },
   ];
 
-  const itemUnit = [
-    { id: 1, name: "NOS" },
-    { id: 2, name: "Grams" },
-  ];
+  const {
+    vehicleNumber,
+    setVehicleNumber,
+    vehicleKm,
+    setVehicleKm,
+    nextKm,
+    setNextKm,
+    customer,
+    setCustomer,
+    address,
+    setAddress,
+    mobileNumber,
+    setMobileNumber,
+  } = props;
+
   const getCurrentDate = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -30,21 +43,46 @@ export default function BillForm() {
   const [selectUnit, setSelectUnit] = useState(null);
   const [selectItemRate, setSelectItemRate] = useState(null);
   const [selectItemQuantity, setSelectItemQuantity] = useState(null);
-  const [selectDiscountAmount, setSelectDiscountAmount] = useState(null);
+  const [selectDiscountAmount, setSelectDiscountAmount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [selectPaid, setSelectPaid] = useState(null);
+  const [isPaidDropdownOpen, setIsPaidDropdownOpen] = useState(false);
 
   const [currentDate, setCurrentDate] = useState(getCurrentDate());
 
+  const [billNumber, setBillNumber] = useState(null);
+  const [serviceName, setServiceName] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/api/new/bill/number`)
+      .then((response) => {
+        console.log("Bill number:", response.data.new_bill_number);
+        setBillNumber(response.data.new_bill_number);
+      })
+      .catch((error) => {
+        console.error("Error fetching bill number:", error);
+      });
+  }, []);
+
   useEffect(() => {
     setCurrentDate(getCurrentDate());
+  }, []);
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/api/service/names`).then((response) => {
+      console.log("Service names:", response.data);
+      setServiceName(response.data);
+    });
   }, []);
 
   const toggleServiceDropdown = () => {
     setIsServiceDropdownOpen(!isServiceDropdownOpen);
   };
 
-  const toggleItemUnitDropdown = () => {
-    setIsItemUnitDropdownOpen(!isItemUnitDropdownOpen);
+
+  const toggleisPaidDropdown = () => {
+    setIsPaidDropdownOpen(!isPaidDropdownOpen);
   };
 
   const handleAddService = () => {
@@ -54,7 +92,7 @@ export default function BillForm() {
       !selectItemRate ||
       !selectItemQuantity
     ) {
-      alert("Please fill all the fields");
+      alert("Please fill all the fields1");
       return;
     }
     const newService = {
@@ -71,7 +109,48 @@ export default function BillForm() {
     setTotalAmount(totalAmount - selectDiscountAmount);
   };
 
-  
+  const handleGenerateBill = () => {
+    console.log(services);
+    if (
+      !vehicleNumber ||
+      !vehicleKm ||
+      !nextKm ||
+      !customer ||
+      !address ||
+      !mobileNumber ||
+      !services.length ||
+      !selectPaid
+    ) {
+      alert("Please fill all the fields2");
+      return;
+    }
+    const selectPaidBool = selectPaid === "Paid";
+    const billData = {
+      billNumber,
+      currentDate,
+      vehicleNumber,
+      vehicleKm,
+      nextKm,
+      customer,
+      address,
+      mobileNumber,
+      services,
+      totalAmount,
+      selectPaidBool,
+      selectDiscountAmount,
+    };
+    console.log("Bill data:", billData);
+    axios
+      .post(`http://localhost:5000/api/bill/create`, billData)
+      .then((response) => {
+        console.log("Bill created:", response.data);
+        alert("Bill created successfully");
+      })
+      .catch((error) => {
+        console.error("Error creating bill:", error);
+        alert("Error creating bill");
+      });
+  }
 
   return (
     <>
@@ -99,6 +178,9 @@ export default function BillForm() {
                   class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   id="bill-number"
                   placeholder="Bill number"
+                  type="text"
+                  value={billNumber}
+                  disabled
                 />
               </div>
               <div class="space-y-2">
@@ -130,6 +212,14 @@ export default function BillForm() {
                   class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   id="vehicle-number"
                   placeholder="Vehicle number"
+                  value={vehicleNumber}
+                  onChange={(e) => {
+                    setVehicleNumber(e.target.value);
+                  }}
+                  onBlur={() => {
+                    console.log("Vehicle Number:", vehicleNumber);
+                  }}
+                  required
                 />
               </div>
               <div class="space-y-2">
@@ -144,6 +234,11 @@ export default function BillForm() {
                   id="vehicle-km"
                   placeholder="Vehicle km"
                   type="number"
+                  value={vehicleKm}
+                  onChange={(e) => {
+                    setVehicleKm(e.target.value);
+                  }}
+                  required
                 />
               </div>
               <div class="space-y-2">
@@ -158,6 +253,11 @@ export default function BillForm() {
                   id="next-km"
                   placeholder="Next km"
                   type="number"
+                  value={nextKm}
+                  onChange={(e) => {
+                    setNextKm(e.target.value);
+                  }}
+                  required
                 />
               </div>
             </div>
@@ -172,6 +272,11 @@ export default function BillForm() {
                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 id="customer"
                 placeholder="Customer"
+                value={customer}
+                onChange={(e) => {
+                  setCustomer(e.target.value);
+                }}
+                required
               />
             </div>
             <div class="space-y-2">
@@ -185,6 +290,11 @@ export default function BillForm() {
                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 id="address"
                 placeholder="Address"
+                value={address}
+                onChange={(e) => {
+                  setAddress(e.target.value);
+                }}
+                required
               />
             </div>
             <div class="space-y-2">
@@ -199,6 +309,11 @@ export default function BillForm() {
                 id="mobile-number"
                 placeholder="Mobile number"
                 type="tel"
+                value={mobileNumber}
+                onChange={(e) => {
+                  setMobileNumber(e.target.value);
+                }}
+                required
               />
             </div>
             <div class="space-y-2 relative">
@@ -249,13 +364,17 @@ export default function BillForm() {
                           className="block px-3 py-2 w-full hover:bg-gray-100 text-left"
                           onClick={() => {
                             // Handle selection of service here
-                            console.log("Selected service:", service.name);
-                            setSelectedService(service.name);
+                            console.log(
+                              "Selected service:",
+                              service.service_name
+                            );
+                            setSelectedService(service.service_name);
+                            setSelectUnit(service.item_unit);
                             // You can close the dropdown after selection if needed
                             setIsServiceDropdownOpen(false);
                           }}
                         >
-                          {service.name}
+                          {service.service_name}
                         </button>
                       </li>
                     ))}
@@ -284,9 +403,9 @@ export default function BillForm() {
                   class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   id="item-unit"
                   aria-label="Item unit"
-                  onClick={toggleItemUnitDropdown}
+                  disabled
                 >
-                  <span>{selectUnit ? selectUnit : "Select"}</span>
+                  <span>{selectUnit ? selectUnit : "Item Unit"}</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -303,32 +422,6 @@ export default function BillForm() {
                     <path d="m6 9 6 6 6-6"></path>
                   </svg>
                 </button>
-                {isItemUnitDropdownOpen && (
-                  <div className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-full mt-1">
-                    <ul
-                      className="py-2 text-sm text-gray-700"
-                      id="dropdownMenu"
-                    >
-                      {itemUnit.map((item) => (
-                        <li key={item.id}>
-                          <button
-                            type="button"
-                            className="block px-3 py-2 w-full hover:bg-gray-100 text-left"
-                            onClick={() => {
-                              // Handle selection of service here
-                              console.log("Selected service:", item.name);
-                              setSelectUnit(item.name);
-                              // You can close the dropdown after selection if needed
-                              setIsItemUnitDropdownOpen(false);
-                            }}
-                          >
-                            {item.name}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
               <div class="space-y-2">
                 <label
@@ -342,6 +435,7 @@ export default function BillForm() {
                   id="item-rate"
                   placeholder="Item rate"
                   type="number"
+                  value={selectItemRate}
                   onChange={(e) => setSelectItemRate(e.target.value)}
                 />
               </div>
@@ -464,10 +558,80 @@ export default function BillForm() {
                 disabled
               />
             </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="space-y-2 relative">
+                <label
+                  class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  for="isPaid"
+                >
+                  isPaid
+                </label>
+                <button
+                  type="button"
+                  role="combobox"
+                  aria-controls="radix-:r5m:"
+                  aria-expanded="false"
+                  aria-autocomplete="none"
+                  dir="ltr"
+                  data-state="closed"
+                  data-placeholder=""
+                  class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  id="isPaid"
+                  aria-label="isPaid"
+                  onClick={toggleisPaidDropdown}
+                >
+                  <span>{selectPaid ? selectPaid : "Select"}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="h-4 w-4 opacity-50"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6"></path>
+                  </svg>
+                </button>
+                {isPaidDropdownOpen && (
+                  <div className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-full mt-1">
+                    <ul
+                      className="py-2 text-sm text-gray-700"
+                      id="dropdownMenu"
+                    >
+                      {isPaid.map((item) => (
+                        <li key={item.id}>
+                          <button
+                            type="button"
+                            className="block px-3 py-2 w-full hover:bg-gray-100 text-left"
+                            onClick={() => {
+                              // Handle selection of service here
+                              console.log("Selected service:", item.name);
+                              setSelectPaid(item.name);
+                              // You can close the dropdown after selection if needed
+                              setIsPaidDropdownOpen(false);
+                            }}
+                          >
+                            {item.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         <div class="flex items-center p-6">
-          <button class="inline-flex items-center justify-center bg-indigo-500 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+          <button
+           class="inline-flex items-center justify-center bg-indigo-500 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+           onClick={handleGenerateBill}>
+
             Generate Bill
           </button>
         </div>
