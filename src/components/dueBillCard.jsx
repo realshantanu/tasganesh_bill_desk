@@ -1,41 +1,42 @@
 import { useState, useEffect } from "react";
 
 export default function DueBillCard(props) {
-    const [dueData, setDueData] = useState([]);
-    const {
-      vehicleNumber
-    } = props;
+  const [dueData, setDueData] = useState([]);
+  const { vehicleNumber } = props;
 
-    useEffect (() => {
-        // Fetch due data
-        if(vehicleNumber){
-          fetch(`http://localhost:5000//api/vehicles/${vehicleNumber}/bills`)
-          .then((response) => response.json())
-          .then((data) => {
-              setDueData(data);
-              console.log(data);
-          })
-          .catch((error) => {
-              console.error("Error:", error);
-          });
-        }
-    }, [vehicleNumber]);
+  useEffect(() => {
+    // Fetch due data
+    if (vehicleNumber && vehicleNumber.length === 10) {
+      fetch(`http://localhost:5000//api/vehicles/${vehicleNumber}/bills`)
+        .then((response) => response.json())
+        .then((data) => {
+          setDueData(data);
+          console.log(data);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+  }, [vehicleNumber]);
 
-  
-    // Calculate total due amount
-     const totalDue = dueData.reduce((total, item) => total + item.amount, 0);
-  
-    return (
-      <>
-        <div className="w-full max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-8">
-          <div className="flex items-center justify-between mb-4">
-            <h5 className="text-xl font-bold leading-none text-gray-900">
-              Due Bills
-            </h5>
-          </div>
-          <div className="flow-root">
-            <ul role="list" className="divide-y divide-gray-200">
-              {dueData.map((item, index) => (
+  // Calculate total due amount
+  // Calculate total due amount
+  let totalDue = 0;
+  if (Array.isArray(dueData) && dueData.length) {
+    totalDue = dueData.reduce((total, item) => total + item.amount, 0);
+  }
+  return (
+    <>
+      <div className="w-full max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-8">
+        <div className="flex items-center justify-between mb-4">
+          <h5 className="text-xl font-bold leading-none text-gray-900">
+            Due Bills
+          </h5>
+        </div>
+        <div className="flow-root">
+          <ul role="list" className="divide-y divide-gray-200">
+            {Array.isArray(dueData) && dueData.length ? (
+              dueData.map((item, index) => (
                 <li key={index} className="py-3 sm:py-4">
                   <div className="flex items-center">
                     <div className="flex-1 min-w-0 ms-4">
@@ -44,7 +45,7 @@ export default function DueBillCard(props) {
                       </p>
                       <p className="text-sm text-gray-500 truncate">
                         Bill No: {item.billno}
-                        </p>
+                      </p>
                       <p className="text-sm text-gray-500 truncate">
                         Due Date: {item.dueDate}
                       </p>
@@ -53,21 +54,23 @@ export default function DueBillCard(props) {
                       </p>
                     </div>
                     <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                    ₹{item.amount}
+                      ₹{item.amount}
                     </div>
                   </div>
                 </li>
-              ))}
-              <li className="py-3 sm:py-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">Total Due:</span>
-                  <span className="font-semibold text-gray-900">₹{totalDue}</span>
-                </div>
-              </li>
-            </ul>
-          </div>
+              ))
+            ) : (
+              <p>No due data available</p>
+            )}
+            <li className="py-3 sm:py-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-gray-900">Total Due:</span>
+                <span className="font-semibold text-gray-900">₹{totalDue}</span>
+              </div>
+            </li>
+          </ul>
         </div>
-      </>
-    );
-  }
-  
+      </div>
+    </>
+  );
+}

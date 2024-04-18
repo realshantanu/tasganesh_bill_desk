@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "../components/sideBar";
 import BillForm from "../components/billForm";
 import DueBillCard from "../components/dueBillCard";
+import VehicleHistory from "../components/vehicleHistory";
 
 export default function GenerateBill() {
   // CUSTOMER DETAILS State
@@ -36,6 +37,9 @@ export default function GenerateBill() {
         </div>
         <div className="w-1/3 pr-4 pl-2 pt-10">
           <DueBillCard 
+            vehicleNumber={vehicleNumber}
+          />
+          <VehicleHistory
             vehicleNumber={vehicleNumber}
           />
         </div>
