@@ -26,6 +26,18 @@ export default function DailyReportDashboard() {
   const [unpaidBillsChange, setUnpaidBillsChange] = useState(0);
   const [earningsChange, setEarningsChange] = useState(0);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = todaysBillsDetails.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const totalPages = Math.ceil(todaysBillsDetails.length / itemsPerPage);
+
   useEffect(() => {
     setCurrentDate(getCurrentDate());
   }, []);
@@ -354,7 +366,7 @@ export default function DailyReportDashboard() {
                     </tr>
                   </thead>
                   <tbody class="[&amp;_tr:last-child]:border-0">
-                    {todaysBillsDetails.map((bill) => (
+                    {currentItems.map((bill) => (
                       <tr
                         key={bill.bill_no}
                         class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
@@ -395,6 +407,52 @@ export default function DailyReportDashboard() {
                       </tr>
                     ))}
                   </tbody>
+                  <nav aria-label="Pagination">
+                    <ul className="flex items-center -space-x-px h-10 text-base">
+                      <li>
+                        <button
+                          onClick={() =>
+                            setCurrentPage(
+                              currentPage > 1 ? currentPage - 1 : currentPage
+                            )
+                          }
+                          className="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700"
+                        >
+                          <span className="sr-only">Previous</span>
+                          <svg width="16px" height="16px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#374151"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <polyline fill="none" stroke="#374151" stroke-width="2" points="7 2 17 12 7 22" transform="matrix(-1 0 0 1 24 0)"></polyline> </g></svg>
+                        </button>
+                      </li>
+                      {[...Array(totalPages)].map((e, i) => (
+                        <li key={i}>
+                          <button
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`flex items-center justify-center px-4 h-10 leading-tight ${
+                              i + 1 === currentPage
+                                ? "text-blue-600 border border-blue-300 bg-blue-50"
+                                : "text-gray-500 bg-white border border-gray-300"
+                            } hover:bg-gray-100 hover:text-gray-700`}
+                          >
+                            {i + 1}
+                          </button>
+                        </li>
+                      ))}
+                      <li>
+                        <button
+                          onClick={() =>
+                            setCurrentPage(
+                              currentPage < totalPages
+                                ? currentPage + 1
+                                : currentPage
+                            )
+                          }
+                          className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700"
+                        >
+                          <span className="sr-only">Next</span>
+                          <svg width="16px" height="16px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#374151"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <polyline fill="none" stroke="#374151" stroke-width="2" points="7 2 17 12 7 22"></polyline> </g></svg>
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
                 </table>
               </div>
             </div>

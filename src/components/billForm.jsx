@@ -106,7 +106,7 @@ export default function BillForm(props) {
   };
 
   const handleApplyDiscount = () => {
-    setTotalAmount(totalAmount - selectDiscountAmount);
+    setTotalAmount(parseFloat((totalAmount - selectDiscountAmount).toFixed(2)));
   };
 
   const handleGenerateBill = () => {
