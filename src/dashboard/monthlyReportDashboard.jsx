@@ -1,11 +1,113 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function MonthlyReportDashboard() {
+  const getCurrentDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const getOneMonthAgoDate = () => {
+    const now = new Date();
+    now.setMonth(now.getMonth() - 1);
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const [fromDate, setFromDate] = useState(getCurrentDate());
+  const [toDate, setToDate] = useState(getCurrentDate());
+
+  const [totalServices, setTotalServices] = useState(0);
+  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [totalBills, setTotalBills] = useState(0);
+  const [billsPaid, setBillsPaid] = useState(0);
+  const [billsUnpaid, setBillsUnpaid] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [BillsDetails, setBillsDetails] = useState([]);
+  const [servicesChange, setServicesChange] = useState(0);
+  const [vehiclesChange, setVehiclesChange] = useState(0);
+  const [billsChange, setBillsChange] = useState(0);
+  const [paidBillsChange, setPaidBillsChange] = useState(0);
+  const [unpaidBillsChange, setUnpaidBillsChange] = useState(0);
+  const [earningsChange, setEarningsChange] = useState(0);
+
+  useEffect(() => {
+    setToDate(getCurrentDate());
+    setFromDate(getOneMonthAgoDate());
+  }, []);
+
+  useEffect(() => {
+    if(fromDate && toDate){
+      getReportData();
+    }
+  },[fromDate, toDate]);
+
+  const getReportData = () => {
+    const url = `http://localhost:5000/report/range?from_date=${fromDate}&to_date=${toDate}`;
+    axios
+      .get(url)
+      .then((response) => {
+        setTotalServices(response.data.total_services);
+        setTotalVehicles(response.data.total_vehicles);
+        setTotalBills(response.data.total_bills);
+        setBillsPaid(response.data.bills_paid);
+        setBillsUnpaid(response.data.bills_unpaid);
+        setTotalEarnings(response.data.total_earnings);
+        setBillsDetails(response.data.bills_details);
+        setServicesChange(response.data.services_change);
+        setVehiclesChange(response.data.vehicles_change);
+        setBillsChange(response.data.bills_change);
+        setPaidBillsChange(response.data.paid_bills_change);
+        setUnpaidBillsChange(response.data.unpaid_bills_change);
+        setEarningsChange(response.data.earnings_change);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   return (
     <>
       <div class="flex flex-col w-full min-h-screen">
         <header class="flex items-center h-16 px-4 border-b shrink-0 md:px-6">
           <div class="flex items-center w-full gap-4 md:ml-auto md:gap-2 lg:gap-4">
+            <label
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              for="from-bill-date"
+            >
+              From date
+            </label>
+            <input
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              id="from-bill-date"
+              placeholder="Bill date"
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+              }}
+            />
+            <label
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              for="to-bill-date"
+            >
+              To date
+            </label>
+            <input
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              id="to-bill-date"
+              placeholder="Bill date"
+              type="date"
+              value={toDate}
+              onChange={(e) => {
+                setToDate(e.target.value);
+              }}
+            />
             <form class="flex-1 ml-auto sm:flex-initial">
               <div class="relative">
                 <svg
@@ -25,7 +127,7 @@ export default function MonthlyReportDashboard() {
                 </svg>
                 <input
                   class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                  placeholder="Search products..."
+                  placeholder="Search Vehicle Number"
                   type="search"
                 />
               </div>
@@ -69,9 +171,9 @@ export default function MonthlyReportDashboard() {
                 </svg>
               </div>
               <div class="p-6">
-                <div class="text-2xl font-bold">+2350</div>
+                <div class="text-2xl font-bold">{totalServices}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  +180.1% from last month
+                  {servicesChange}% from last day
                 </p>
               </div>
             </div>
@@ -102,9 +204,9 @@ export default function MonthlyReportDashboard() {
                 </svg>
               </div>
               <div class="p-6">
-                <div class="text-2xl font-bold">+2350</div>
+                <div class="text-2xl font-bold">{totalVehicles}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  +180.1% from last month
+                  {vehiclesChange}% from last day
                 </p>
               </div>
             </div>
@@ -133,9 +235,9 @@ export default function MonthlyReportDashboard() {
                 </svg>
               </div>
               <div class="p-6">
-                <div class="text-2xl font-bold">+12,234</div>
+                <div class="text-2xl font-bold">{totalBills}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  +19% from last month
+                  {billsChange}% from last day
                 </p>
               </div>
             </div>
@@ -163,9 +265,9 @@ export default function MonthlyReportDashboard() {
                 </svg>
               </div>
               <div class="p-6">
-                <div class="text-2xl font-bold">+573</div>
+                <div class="text-2xl font-bold">{billsPaid}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  +201 since last hour
+                  {paidBillsChange} since last day
                 </p>
               </div>
             </div>
@@ -193,9 +295,9 @@ export default function MonthlyReportDashboard() {
                 </svg>
               </div>
               <div class="p-6">
-                <div class="text-2xl font-bold">+5</div>
+                <div class="text-2xl font-bold">{billsUnpaid}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  +2 since last hour
+                  {unpaidBillsChange} since last day
                 </p>
               </div>
             </div>
@@ -205,7 +307,7 @@ export default function MonthlyReportDashboard() {
             >
               <div class="p-6 flex flex-row items-center justify-between pb-2 space-y-0">
                 <h3 class="whitespace-nowrap tracking-tight text-sm font-medium">
-                  Total Earnings (USD)
+                  Total Earnings (INR)
                 </h3>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -224,9 +326,9 @@ export default function MonthlyReportDashboard() {
                 </svg>
               </div>
               <div class="p-6">
-                <div class="text-2xl font-bold">+$2,500.00</div>
+                <div class="text-2xl font-bold">₹{totalEarnings}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  +10% from last month
+                  {earningsChange}% from last day
                 </p>
               </div>
             </div>
@@ -278,146 +380,46 @@ export default function MonthlyReportDashboard() {
                     </tr>
                   </thead>
                   <tbody class="[&amp;_tr:last-child]:border-0">
-                    <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 font-medium">
-                        BILL001
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        John Doe
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        $250.00
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Paid
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 flex items-center w-[100px]">
-                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-4 w-4"
-                          >
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" x2="21" y1="14" y2="3"></line>
-                          </svg>
-                          <span class="sr-only">Open</span>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 font-medium">
-                        BILL002
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Jane Smith
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        $150.00
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Pending
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 flex items-center w-[100px]">
-                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-4 w-4"
-                          >
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" x2="21" y1="14" y2="3"></line>
-                          </svg>
-                          <span class="sr-only">Open</span>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 font-medium">
-                        BILL003
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Adam Johnson
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        $350.00
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Unpaid
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 flex items-center w-[100px]">
-                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-4 w-4"
-                          >
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" x2="21" y1="14" y2="3"></line>
-                          </svg>
-                          <span class="sr-only">Open</span>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 font-medium">
-                        BILL004
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Emily Davis
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        $450.00
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        Paid
-                      </td>
-                      <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 flex items-center w-[100px]">
-                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-4 w-4"
-                          >
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" x2="21" y1="14" y2="3"></line>
-                          </svg>
-                          <span class="sr-only">Open</span>
-                        </button>
-                      </td>
-                    </tr>
+                    {BillsDetails.map((bill) => (
+                      <tr
+                        key={bill.bill_no}
+                        class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                      >
+                        <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 font-medium">
+                          {bill.bill_no}
+                        </td>
+                        <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
+                          {bill.customer}
+                        </td>
+                        <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
+                          ₹{bill.amount}
+                        </td>
+                        <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
+                          {bill.status}
+                        </td>
+                        <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 flex items-center w-[100px]">
+                          <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="h-4 w-4"
+                            >
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                              <polyline points="15 3 21 3 21 9"></polyline>
+                              <line x1="10" x2="21" y1="14" y2="3"></line>
+                            </svg>
+                            <span class="sr-only">Open</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
