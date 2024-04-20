@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import PDFPopup from "./pdfPopup";
 
 import axios from "axios";
 
 export default function BillForm(props) {
-
   const isPaid = [
     { id: 1, name: "Paid" },
     { id: 2, name: "Unpaid" },
@@ -50,6 +50,7 @@ export default function BillForm(props) {
 
   const [billNumber, setBillNumber] = useState(null);
   const [serviceName, setServiceName] = useState([]);
+  const [isPdfPopupOpen, setIsPdfPopupOpen] = useState(false); // Add this line
 
   useEffect(() => {
     axios
@@ -77,7 +78,6 @@ export default function BillForm(props) {
   const toggleServiceDropdown = () => {
     setIsServiceDropdownOpen(!isServiceDropdownOpen);
   };
-
 
   const toggleisPaidDropdown = () => {
     setIsPaidDropdownOpen(!isPaidDropdownOpen);
@@ -143,12 +143,13 @@ export default function BillForm(props) {
       .then((response) => {
         console.log("Bill created:", response.data);
         alert("Bill created successfully");
+        setIsPdfPopupOpen(true);
       })
       .catch((error) => {
         console.error("Error creating bill:", error);
         alert("Error creating bill");
       });
-  }
+  };
 
   return (
     <>
@@ -627,13 +628,25 @@ export default function BillForm(props) {
         </div>
         <div class="flex items-center p-6">
           <button
-           class="inline-flex items-center justify-center bg-indigo-500 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-           onClick={handleGenerateBill}>
-
+            class="inline-flex items-center justify-center bg-indigo-500 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            onClick={handleGenerateBill}
+          >
             Generate Bill
           </button>
         </div>
       </div>
+
+      {isPdfPopupOpen && (
+        <div className="fixed inset-0 flex items-start justify-center z-50 overflow-auto pt-10">
+          <div className="bg-white p-4 rounded shadow-lg max-w-2xl mx-auto overflow-auto">
+            <PDFPopup
+              bill_number={billNumber}
+              setIsPdfPopupOpen={setIsPdfPopupOpen} // Pass callback to close popup
+              isPdfPopupOpen={isPdfPopupOpen}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
