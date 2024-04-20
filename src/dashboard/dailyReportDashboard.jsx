@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import PDFPopup from "../components/pdfPopup";
 
 export default function DailyReportDashboard() {
   const getCurrentDate = () => {
@@ -26,15 +27,23 @@ export default function DailyReportDashboard() {
   const [unpaidBillsChange, setUnpaidBillsChange] = useState(0);
   const [earningsChange, setEarningsChange] = useState(0);
 
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [isPdfPopupOpen, setIsPdfPopupOpen] = useState(false); // Add this line
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredBills = searchQuery
+    ? todaysBillsDetails.filter((bill) =>
+        bill.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : todaysBillsDetails;
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = todaysBillsDetails.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentItems = filteredBills.slice(indexOfFirstItem, indexOfLastItem);
 
   const totalPages = Math.ceil(todaysBillsDetails.length / itemsPerPage);
 
@@ -72,8 +81,26 @@ export default function DailyReportDashboard() {
       });
   };
 
+  useEffect(() => {}, [selectedBill]);
+
+  const handlePopupPDF = (billNumber) => {
+    setSelectedBill(billNumber);
+    setIsPdfPopupOpen(true);
+  };
+
   return (
     <>
+      {isPdfPopupOpen && (
+        <div className="fixed inset-0 flex items-start justify-center z-50 overflow-auto pt-10">
+          <div className="bg-white p-4 rounded shadow-lg max-w-2xl mx-auto overflow-auto">
+            <PDFPopup
+              bill_number={selectedBill}
+              setIsPdfPopupOpen={setIsPdfPopupOpen} // Pass callback to close popup
+              isPdfPopupOpen={isPdfPopupOpen}
+            />
+          </div>
+        </div>
+      )}
       <div class="flex flex-col w-full min-h-screen">
         <header class="flex items-center h-16 px-4 border-b shrink-0 md:px-6">
           <div class="flex items-center w-full gap-4 md:ml-auto md:gap-2 lg:gap-4">
@@ -115,19 +142,11 @@ export default function DailyReportDashboard() {
                   class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
                   placeholder="Search products..."
                   type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </form>
-            <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 rounded-full">
-              <img
-                src="/search.png"
-                width="32"
-                height="32"
-                class="rounded-full"
-                alt="Avatar"
-              />
-              <span class="sr-only">Search</span>
-            </button>
           </div>
         </header>
         <main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
@@ -384,7 +403,10 @@ export default function DailyReportDashboard() {
                           {bill.status}
                         </td>
                         <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 flex items-center w-[100px]">
-                          <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                          <button
+                            onClick={() => handlePopupPDF(bill.bill_no)}
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10"
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
@@ -419,7 +441,30 @@ export default function DailyReportDashboard() {
                           className="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700"
                         >
                           <span className="sr-only">Previous</span>
-                          <svg width="16px" height="16px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#374151"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <polyline fill="none" stroke="#374151" stroke-width="2" points="7 2 17 12 7 22" transform="matrix(-1 0 0 1 24 0)"></polyline> </g></svg>
+                          <svg
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="#374151"
+                          >
+                            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                            <g
+                              id="SVGRepo_tracerCarrier"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            ></g>
+                            <g id="SVGRepo_iconCarrier">
+                              {" "}
+                              <polyline
+                                fill="none"
+                                stroke="#374151"
+                                stroke-width="2"
+                                points="7 2 17 12 7 22"
+                                transform="matrix(-1 0 0 1 24 0)"
+                              ></polyline>{" "}
+                            </g>
+                          </svg>
                         </button>
                       </li>
                       {[...Array(totalPages)].map((e, i) => (
@@ -448,7 +493,29 @@ export default function DailyReportDashboard() {
                           className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700"
                         >
                           <span className="sr-only">Next</span>
-                          <svg width="16px" height="16px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#374151"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <polyline fill="none" stroke="#374151" stroke-width="2" points="7 2 17 12 7 22"></polyline> </g></svg>
+                          <svg
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="#374151"
+                          >
+                            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                            <g
+                              id="SVGRepo_tracerCarrier"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            ></g>
+                            <g id="SVGRepo_iconCarrier">
+                              {" "}
+                              <polyline
+                                fill="none"
+                                stroke="#374151"
+                                stroke-width="2"
+                                points="7 2 17 12 7 22"
+                              ></polyline>{" "}
+                            </g>
+                          </svg>
                         </button>
                       </li>
                     </ul>
