@@ -28,7 +28,7 @@ export default function PDFPopup(props) {
   }, []);
   const getBillDetails = () => {
     axios
-      .get(`http://localhost:5000/api/bill/${bill_number}`)
+      .get(`https://tasganesh-backend.vercel.app/api/bill/${bill_number}`)
       .then((response) => {
         console.log(response.data);
         setBillDate(response.data.currentDate);
@@ -84,7 +84,7 @@ export default function PDFPopup(props) {
 
   const handlePaid = () => {
     axios
-      .put(`http://localhost:5000/api/bill/update/${billNumber}`)
+      .put(`https://tasganesh-backend.vercel.app/api/bill/update/${billNumber}`)
       .then((response) => {
         console.log(response.data);
         alert("Bill Paid Successfully");

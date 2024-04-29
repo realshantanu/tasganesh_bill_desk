@@ -34,7 +34,7 @@ export default function PendingBillDashboard() {
   const getPendingReports = () => {
     // API call to get pending reports
     axios
-      .get(`http://localhost:5000/report/pending`)
+      .get(`https://tasganesh-backend.vercel.app/report/pending`)
       .then((response) => {
         console.log(response.data);
         setPendingReports(response.data.pending_bills_details);

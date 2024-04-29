@@ -7,7 +7,7 @@ export default function VehicleHistory(props) {
     useEffect(() => {
         // Fetch vehicle history
         if ( vehicleNumber && vehicleNumber.length === 10 ) {
-            fetch(`http://localhost:5000//api/vehicles/${vehicleNumber}/history`)
+            fetch(`https://tasganesh-backend.vercel.app/api/vehicles/${vehicleNumber}/history`)
                 .then((response) => response.json())
                 .then((data) => {
                     setVehicleHistory(data);

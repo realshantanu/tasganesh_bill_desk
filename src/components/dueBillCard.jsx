@@ -7,7 +7,7 @@ export default function DueBillCard(props) {
   useEffect(() => {
     // Fetch due data
     if (vehicleNumber && vehicleNumber.length === 10) {
-      fetch(`http://localhost:5000//api/vehicles/${vehicleNumber}/bills`)
+      fetch(`https://tasganesh-backend.vercel.app/api/vehicles/${vehicleNumber}/bills`)
         .then((response) => response.json())
         .then((data) => {
           setDueData(data);

@@ -9,7 +9,7 @@ export default function AddService() {
   const [serviceName, setServiceName] = useState(null);
   const [serviceUnit, setServiceUnit] = useState(null);
   useEffect(() => {
-    axios.get("http://localhost:5000/api/new/service/number")
+    axios.get("https://tasganesh-backend.vercel.app/api/new/service/number")
     .then((response) => {
       setServiceId(response.data.serviceNumber);
     })
@@ -24,7 +24,7 @@ export default function AddService() {
       service_name: serviceName,
       item_unit: serviceUnit,
     };
-    axios.post("http://localhost:5000/api/add/service", service)
+    axios.post("https://tasganesh-backend.vercel.app/api/add/service", service)
     .then((response) => {
       console.log(response.data);
       alert("Service added successfully");

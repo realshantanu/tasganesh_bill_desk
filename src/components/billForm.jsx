@@ -54,7 +54,7 @@ export default function BillForm(props) {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/new/bill/number`)
+      .get(`https://tasganesh-backend.vercel.app/api/new/bill/number`)
       .then((response) => {
         console.log("Bill number:", response.data.new_bill_number);
         setBillNumber(response.data.new_bill_number);
@@ -69,7 +69,7 @@ export default function BillForm(props) {
   }, []);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/service/names`).then((response) => {
+    axios.get(`https://tasganesh-backend.vercel.app/api/service/names`).then((response) => {
       console.log("Service names:", response.data);
       setServiceName(response.data);
     });
@@ -139,7 +139,7 @@ export default function BillForm(props) {
     };
     console.log("Bill data:", billData);
     axios
-      .post(`http://localhost:5000/api/bill/create`, billData)
+      .post(`https://tasganesh-backend.vercel.app/api/bill/create`, billData)
       .then((response) => {
         console.log("Bill created:", response.data);
         alert("Bill created successfully");

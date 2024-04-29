@@ -69,7 +69,7 @@ export default function MonthlyReportDashboard() {
   }, [fromDate, toDate]);
 
   const getReportData = () => {
-    const url = `http://localhost:5000/report/range?from_date=${fromDate}&to_date=${toDate}`;
+    const url = `https://tasganesh-backend.vercel.app/report/range?from_date=${fromDate}&to_date=${toDate}`;
     axios
       .get(url)
       .then((response) => {

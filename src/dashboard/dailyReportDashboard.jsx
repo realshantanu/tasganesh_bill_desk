@@ -58,7 +58,7 @@ export default function DailyReportDashboard() {
   }, [currentDate]);
 
   const getReportData = () => {
-    const url = `http://localhost:5000/report/daily?date=${currentDate}`;
+    const url = `https://tasganesh-backend.vercel.app/report/daily?date=${currentDate}`;
     axios
       .get(url)
       .then((response) => {
